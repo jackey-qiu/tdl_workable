@@ -1,0 +1,114 @@
+##################################################
+# Default site startup file for tdl/pds.
+# Add paths, imports and other data that should be
+# defined for the site.
+# Individual users can place a .pds file in thier
+# home directories for additional startup options
+##################################################
+
+##################################################
+# If tdl is not on path we need to add it.
+# Here we also add tdl.modules and tdl.lib
+# this way 'import xtal' will work in pds
+# instead of having to type
+# 'from tdl.modules import xtal'
+##################################################
+import os
+
+try:
+    # import tdl.modules as tdl
+    __tdlrootpath__ = os.path.split(__pds__.__rootpath__)[0]
+    __tdllibpath__ = os.path.join(__pds__.__rootpath__,'lib')
+    __tdlmodpath__ = os.path.join(__pds__.__rootpath__,'modules')
+    path(__tdlrootpath__)
+    path(__tdllibpath__)
+    path(__tdlmodpath__)
+    del os
+except:
+    print "Error setting tdl paths"
+
+#########################################################
+# put some tdl mathutil functions into __builtins__
+#########################################################
+try:
+    import tdl.modules.utils.mathutil as __mathutil__
+    __builtins__.update({'ave':__mathutil__.ave})
+    __builtins__.update({'std':__mathutil__.std})
+    __builtins__.update({'square':__mathutil__.square})
+    __builtins__.update({'minimize':__mathutil__.minimize})
+    #
+    __builtins__.update({'cosd':__mathutil__.cosd})
+    __builtins__.update({'acosd':__mathutil__.arccosd})
+    __builtins__.update({'sind':__mathutil__.sind})
+    __builtins__.update({'asind':__mathutil__.arcsind})
+    __builtins__.update({'tand':__mathutil__.tand})
+    __builtins__.update({'atand':__mathutil__.arctand})
+    __builtins__.update({'random':__mathutil__.random})
+except:
+    print "Warning cant load tdl.modules.utils.mathutil functions"
+
+# put some plotter stuff into __builtins__
+# import plotter from tdl and add to pyplot
+try:
+    from tdl.modules.utils import plotter as __plotter__
+    pyplot.plotter    = __plotter__.plotter
+    pyplot.newplotter = __plotter__.newplotter
+    pyplot.cursor     = __plotter__.cursor
+    __builtins__.update({'plot':pyplot.plotter})
+    __builtins__.update({'newplot':pyplot.newplotter})
+    addcmd 'plot', 'pyplot.plotter'
+    addcmd 'newplot', 'pyplot.newplotter'
+except:
+    pyplot.plotter = None
+    print "tdl plotter import error"
+
+##################################################
+## Default Imports
+##################################################
+## PDS menus
+from tdl.pds import menu
+
+##################################################
+## Make sure help is defined
+##################################################
+if 'help' not in __builtins__.keys():
+    from pydoc import help as __help__
+    __builtins__['help']=__help__
+
+##################################################
+## Editor
+##################################################
+def edit(fname=''):
+    """
+    Define an editor to call from command line
+    Note the editor needs to be on your path...
+    """
+    import os, sys
+    from subprocess import Popen
+    cmd = 'nedit %s' % fname
+    if os.name == 'nt':
+        cmd = 'notepad %s' % fname
+    elif sys.platform.lower().startswith('darwin'):
+        cmd = 'open -e %s' % fname
+    pid = Popen(cmd.split())
+
+addcmd 'edit', 'edit'
+
+##################################################
+## Browser/Help
+##################################################
+def web(path='', new_win=True):
+    """
+    Define a web browser to call from command line
+    Note the browser needs to be on your path...
+    """
+    import webbrowser
+    if path == '':
+        path="  http://cars9.uchicago.edu/iffwiki/tdl"
+    cmd = webbrowser.open
+    if new_win:
+        cmd = webbrowser.open_new
+    cmd(path)
+
+addcmd 'web', 'web'
+##################################################
